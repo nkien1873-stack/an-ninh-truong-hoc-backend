@@ -39,9 +39,9 @@ Dockerfile, render.yaml  build và triển khai lên Render
 ## Chạy trên máy
 
 ```bash
+chay-lan-dau.bat         # tải thư viện cho backend và campus_core (hoặc dart pub get trong từng thư mục)
 cd backend
 cp .env.example .env      # điền MONGODB_URI, FIREBASE_PROJECT_ID, OTP_PEPPER, thông tin gửi mail
-dart pub get
 dart_frog dev             # http://localhost:8080
 dart test                 # kiểm thử
 ```
