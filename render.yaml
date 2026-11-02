@@ -1,0 +1,38 @@
+# Render Blueprint: backend cho app An ninh trường học.
+# Khoá bí mật nhập trên Render (sync: false), không nằm trong repo.
+services:
+  - type: web
+    name: an-ninh-truong-hoc-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      # CSDL chính. Chuỗi kết nối có mật khẩu, nhập trên Render.
+      - key: MONGODB_URI
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        value: sms-otp-26e31
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: /etc/secrets/service-account.json
+      - key: TRUST_PROXY
+        value: "true"
+      # Render miễn phí chặn cổng SMTP nên OTP gửi qua Google Apps Script.
+      - key: MAIL_SCRIPT_URL
+        sync: false
+      - key: MAIL_SCRIPT_SECRET
+        sync: false
+      - key: MAIL_FROM_NAME
+        sync: false
+      - key: OTP_PEPPER
+        sync: false
+      - key: ALLOW_SELF_REGISTRATION
+        sync: false
+      - key: BOOTSTRAP_ADMIN_EMAILS
+        sync: false
+      - key: DUTY_HOTLINE
+        sync: false
+      - key: CAMPUS_NAME
+        sync: false

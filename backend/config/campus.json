@@ -1,0 +1,16 @@
+{
+  "_comment": "Danh sách khu vực mặc định, chỉ dùng khi Firestore chưa có config/app. Quản trị sửa trong app: Quản lý > Cấu hình trường.",
+  "buildings": [
+    "Toà A1",
+    "Toà A2",
+    "Toà B1",
+    "Toà C",
+    "Thư viện",
+    "Nhà thi đấu",
+    "Ký túc xá",
+    "Căng tin",
+    "Bãi xe",
+    "Cổng chính",
+    "Sân trường"
+  ]
+}

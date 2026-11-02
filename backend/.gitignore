@@ -1,0 +1,12 @@
+# Secret: KHÔNG commit
+.env
+.env.*
+!.env.example
+service-account*.json
+*.pem
+
+# dart / dart_frog
+.dart_tool/
+.dart_frog/
+build/
+pubspec_overrides.yaml

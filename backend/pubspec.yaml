@@ -1,0 +1,22 @@
+name: campus_safety_backend
+description: Backend dart_frog cho app "Báo cáo sự cố an ninh trong trường". Cấp custom token Firebase, gửi OTP qua email và thông báo đẩy FCM.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  campus_core:
+    path: ../packages/campus_core
+  crypto: ^3.0.7
+  dart_firebase_admin: ^0.4.1
+  dart_frog: ^1.2.6
+  dotenv: ^4.2.0
+  http: ^1.6.0
+  mailer: ^7.2.0
+  mongo_dart: ^0.10.10
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.26.0
