@@ -12,6 +12,7 @@ export 'src/data/mongo_store.dart';
 export 'src/data/repositories.dart';
 export 'src/http/api_exception.dart';
 export 'src/http/middleware.dart';
+export 'src/http/landing_page.dart';
 export 'src/http/user_limits.dart';
 export 'src/http/request_helpers.dart';
 export 'src/notifications/notification_service.dart';

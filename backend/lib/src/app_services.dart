@@ -37,7 +37,9 @@ class AppServices {
     required this.walks,
     required this.images,
     UserLimits? limits,
-  }) : limits = limits ?? UserLimits();
+    Future<bool> Function()? databaseHealthy,
+  })  : limits = limits ?? UserLimits(),
+        databaseHealthy = databaseHealthy ?? (() async => true);
 
   final AppConfig config;
   final UserRepository users;
@@ -53,6 +55,9 @@ class AppServices {
 
   /// Giới hạn tần suất thao tác ghi theo tài khoản (chống spam).
   final UserLimits limits;
+
+  /// MongoDB có trả lời không (trang /health).
+  final Future<bool> Function() databaseHealthy;
 
   static AppServices? _instance;
 
@@ -110,6 +115,7 @@ class AppServices {
       revokeSessions: authTokens.revokeSessions,
     );
     return AppServices(
+      databaseHealthy: store.isHealthy,
       config: config,
       users: users,
       reports: reports,

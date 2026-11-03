@@ -80,6 +80,18 @@ class MongoStore {
     }
   }
 
+  /// Cơ sở dữ liệu có trả lời không (trang /health). Lỗi thì đóng kết nối để lần sau mở lại.
+  Future<bool> isHealthy() async {
+    try {
+      await (await _database()).pingCommand().timeout(const Duration(seconds: 5));
+      return true;
+    } on Object catch (e) {
+      stderr.writeln('[mongo] Kiểm tra sức khoẻ thất bại: ${_safe(e)}');
+      await _discard();
+      return false;
+    }
+  }
+
   /// Chạy [operation]; mất kết nối thì mở lại và thử thêm một lần.
   Future<T> run<T>(String collection, Future<T> Function(DbCollection c) operation) async {
     try {
