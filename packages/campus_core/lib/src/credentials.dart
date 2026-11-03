@@ -65,6 +65,26 @@ abstract final class StudentIdPolicy {
 /// tài khoản người báo tự bị khoá (kể cả khi báo ẩn danh, backend vẫn biết ai gửi).
 abstract final class FakeReportPolicy {
   static const lockThreshold = 3;
+
+  /// Trạng thái khoá khi quản trị chỉnh tài khoản. Người báo có đủ [lockThreshold] cảnh báo thì
+  /// luôn bị khoá; muốn mở khoá phải giảm số cảnh báo xuống dưới ngưỡng trước. [error] khác `null`
+  /// khi quản trị muốn mở khoá mà chưa giảm cảnh báo.
+  static ({bool locked, String? error}) resolveLock({
+    required bool isReporter,
+    required int warnings,
+    required bool wantLocked,
+  }) {
+    if (isReporter && warnings >= lockThreshold) {
+      return (
+        locked: true,
+        error: wantLocked
+            ? null
+            : 'Tài khoản đang có $lockThreshold cảnh báo nên không mở khoá được. '
+                'Giảm số lần cảnh báo xuống dưới $lockThreshold trước.',
+      );
+    }
+    return (locked: wantLocked, error: null);
+  }
 }
 
 /// Giới hạn đăng nhập sai.

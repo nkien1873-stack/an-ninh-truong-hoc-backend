@@ -28,4 +28,15 @@ void main() {
     expect(StudentIdPolicy.validate('12345'), contains('6 đến 12'));
     expect(StudentIdPolicy.validate('1' * 13), contains('6 đến 12'));
   });
+
+  test('khoá theo số cảnh báo: đủ 3 thì tự khoá, chưa giảm dưới 3 thì không mở khoá được', () {
+    final auto = FakeReportPolicy.resolveLock(isReporter: true, warnings: 3, wantLocked: false);
+    expect(auto.locked, isTrue);
+    expect(auto.error, contains('Giảm số lần cảnh báo xuống dưới 3'));
+    expect(FakeReportPolicy.resolveLock(isReporter: true, warnings: 3, wantLocked: true), (locked: true, error: null));
+    expect(FakeReportPolicy.resolveLock(isReporter: true, warnings: 2, wantLocked: false), (locked: false, error: null));
+    expect(FakeReportPolicy.resolveLock(isReporter: true, warnings: 1, wantLocked: true), (locked: true, error: null));
+    // Bảo vệ, quản trị không bị khoá theo cảnh báo.
+    expect(FakeReportPolicy.resolveLock(isReporter: false, warnings: 3, wantLocked: false), (locked: false, error: null));
+  });
 }

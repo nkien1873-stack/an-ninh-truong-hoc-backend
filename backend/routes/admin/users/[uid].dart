@@ -3,9 +3,8 @@ import 'package:campus_safety_backend/backend.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 /// PATCH /admin/users/{uid} {role?, active?, onDuty?, displayName?, memberType?, fakeReports?, failedLogins?}.
-/// `failedLogins` (0 đến 5) đặt số lần đăng nhập sai: đủ 5 là tạm khoá, ít hơn là mở khoá đăng nhập.
-/// `fakeReports` (0 đến ngưỡng) chỉnh số lần báo cáo sai sự thật; đủ ngưỡng thì khoá người báo.
-/// Mở khoá thì đặt lại số lần (mặc định 0).
+/// `fakeReports` (0 đến 3) là số lần cảnh báo báo tin giả: người báo đủ 3 thì tự khoá, và chỉ mở khoá
+/// được khi giảm xuống dưới 3. `failedLogins` (0 đến 5) đặt số lần đăng nhập sai (đủ 5 là tạm khoá 15 phút).
 /// DELETE /admin/users/{uid} : xoá tài khoản (báo cáo người đó đã gửi vẫn giữ).
 Future<Response> onRequest(RequestContext context, String uid) async {
   ensureMethod(context, {HttpMethod.patch, HttpMethod.delete});
@@ -48,18 +47,18 @@ Future<Response> onRequest(RequestContext context, String uid) async {
   }
 
   const limit = FakeReportPolicy.lockThreshold;
-  var fakeReports = optionalInt(body, 'fakeReports');
+  final fakeReports = optionalInt(body, 'fakeReports');
   if (fakeReports != null && (fakeReports < 0 || fakeReports > limit)) {
-    throw ApiException.validation({'fakeReports': 'Số lần báo sai từ 0 đến $limit.'});
+    throw ApiException.validation({'fakeReports': 'Số lần cảnh báo từ 0 đến $limit.'});
   }
-  final unlocking = (active ?? false) && !target.active;
-  // Mở khoá thì đếm lại (mặc định từ 0), nếu không lần báo sai kế tiếp sẽ khoá ngay.
-  if (unlocking) fakeReports = (fakeReports ?? 0).clamp(0, limit - 1);
-  // Quản trị nâng lên đủ ngưỡng thì khoá như khi hệ thống tự đếm.
-  final lockForFake = fakeReports != null &&
-      fakeReports >= limit &&
-      (role ?? target.role) == UserRole.reporter &&
-      (active ?? target.active);
+  // Đủ 3 cảnh báo thì luôn khoá; muốn mở khoá phải giảm cảnh báo xuống dưới 3 trước.
+  final lock = FakeReportPolicy.resolveLock(
+    isReporter: (role ?? target.role) == UserRole.reporter,
+    warnings: fakeReports ?? target.fakeReports,
+    wantLocked: !(active ?? target.active),
+  );
+  if (lock.error != null && active == true) throw ApiException.validation({'active': lock.error!});
+  final newActive = !lock.locked;
 
   // Đặt số lần đăng nhập sai trước (có kiểm tra), để lỗi không làm lưu dở các thay đổi khác.
   final failedLogins = optionalInt(body, 'failedLogins');
@@ -68,14 +67,15 @@ Future<Response> onRequest(RequestContext context, String uid) async {
   final updated = await services.users.update(
     uid,
     role: role,
-    active: lockForFake ? false : active,
+    active: newActive != target.active ? newActive : null,
     // Hạ xuống người báo thì tự tắt trực.
     onDuty: (role != null && !role.isStaff) ? false : onDuty,
     displayName: name,
     memberType: memberType,
     fakeReports: fakeReports,
   );
-  if (active == false || lockForFake) await services.authTokens.revokeSessions(uid);
+  // Vừa bị khoá: thu hồi phiên, app trên máy người đó tự đăng xuất.
+  if (target.active && !newActive) await services.authTokens.revokeSessions(uid);
   final login = (await services.accounts.loginStatus([uid]))[uid];
   return Response.json(body: {
     'user': {...updated.toApiJson(), ...?login},
